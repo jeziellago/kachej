@@ -1,6 +1,6 @@
+![](logo_kachej.png)
 # Kachej
 Write objects as files using Kotlin Coroutines.
-
 ## Why?
 - This tool is an alternative to cache objects without having to convert to JSON, XML or other.
 - Why not? 😎
