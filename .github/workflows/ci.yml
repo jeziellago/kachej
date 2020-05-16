@@ -1,0 +1,27 @@
+name: CI
+
+on: 
+  push:
+    branches: 
+      - dev
+      - master
+  pull_request:
+    branches: 
+      - dev
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Run Unit Test
+      run: ./gradlew test
+    - name: Run Jacoco Report
+      run: ./gradlew coverageReport
+    - uses: codecov/codecov-action@v1
+      with:
+        file: ./kachej/build/jacoco/coverage.xml
+    - name: Run Build
+      run: ./gradlew build
