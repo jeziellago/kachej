@@ -15,6 +15,8 @@
  */
 package com.kachej
 
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -54,24 +56,40 @@ class KachejTest {
     @Test
     fun `writer should write serializable object with success`() = runBlocking {
         val kachej = Kachej()
+        var success = false
 
-        assert(kachej.write("myObject", serializableObject))
+        kachej.write("myObject", serializableObject)
+            .collect { success = true }
+
+        assert(success)
+    }
+
+    @Test
+    fun `writer should rewrite serializable object with success`() = runBlocking {
+        val kachej = Kachej()
+        var success = false
+        kachej.write("myObject", serializableObject).single()
+
+        kachej.write("myObject", serializableObject)
+            .collect { success = true }
+
+        assert(success)
     }
 
     @Test(expected = NotSerializableException::class)
     fun `writer should not write unserializable`() = runBlocking {
         val kachej = Kachej()
 
-        assert(kachej.write("myObject", unserializableObject))
+        kachej.write("myObject", unserializableObject).single()
     }
 
     @Test
     fun `reader should read object from file`() = runBlocking {
         val kachej = Kachej()
 
-        kachej.write("myObject", serializableObject)
+        kachej.write("myObject", serializableObject).single()
 
-        assertEquals(serializableObject, kachej.read<MyObject>("myObject"))
+        assertEquals(serializableObject, kachej.read<MyObject>("myObject").single())
     }
 
     @After

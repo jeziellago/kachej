@@ -15,13 +15,7 @@
  */
 package com.kachej
 
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 
-internal class LockableTask {
-
-    private val locker = Mutex()
-
-    suspend fun <T> execute(action: () -> T) = locker.withLock { action() }
-
+internal suspend fun <T> lockableTask(action: () -> T): T {
+    return LockableTask().execute(action)
 }

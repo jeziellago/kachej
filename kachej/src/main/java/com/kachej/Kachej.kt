@@ -15,40 +15,42 @@
  */
 package com.kachej
 
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import java.io.File
 import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
 import java.io.Serializable
-import kotlin.coroutines.CoroutineContext
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class Kachej(
     private val parentDir: File = File(".")
 ) : ObjectReader, ObjectWriter {
 
-    override suspend fun <T : Serializable> write(
+    override fun <T : Serializable> write(
         filename: String,
-        value: T,
-        coroutineContext: CoroutineContext
-    ): Boolean {
-        return LockableTask(coroutineContext).execute {
-            val file = File(parentDir.absolutePath, filename)
-            if (file.exists()) file.delete()
-            ObjectOutputStream(file.outputStream()).use {
-                it.writeObject(value)
+        value: T
+    ): Flow<Unit> = flow {
+        emit(lockableTask {
+                val file = File(parentDir.absolutePath, filename)
+                if (file.exists()) file.delete()
+                ObjectOutputStream(file.outputStream()).run {
+                    writeObject(value)
+                    close()
+                }
             }
-            true
-        }
+        )
     }
 
-    override suspend fun <T : Serializable> read(
-        filename: String,
-        coroutineContext: CoroutineContext
-    ): T? = LockableTask(coroutineContext).execute {
-        val file = File(parentDir.absolutePath, filename)
-        if (!file.exists()) return@execute null
-        ObjectInputStream(file.inputStream()).use { reader ->
-            @Suppress("UNCHECKED_CAST")
-            reader.readObject() as T
-        }
+    override fun <T : Serializable> read(filename: String): Flow<T> = flow {
+        emit(lockableTask {
+                val file = File(parentDir.absolutePath, filename)
+                ObjectInputStream(file.inputStream()).use { reader ->
+                    @Suppress("UNCHECKED_CAST")
+                    reader.readObject() as T
+                }
+            }
+        )
     }
 }
