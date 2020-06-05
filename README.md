@@ -1,5 +1,5 @@
 ![](logo_kachej.png)
-# Kachej [![codecov](https://codecov.io/gh/jeziellago/kachej/branch/master/graph/badge.svg)](https://codecov.io/gh/jeziellago/kachej)
+# Kachej [![codecov](https://codecov.io/gh/jeziellago/kachej/branch/master/graph/badge.svg)](https://codecov.io/gh/jeziellago/kachej) ![CI](https://github.com/jeziellago/kachej/workflows/CI/badge.svg?branch=master)
 Write objects as files using Kotlin Flow.
 ## Why?
 - This tool is an alternative to cache objects without having to convert to JSON, XML or other.
