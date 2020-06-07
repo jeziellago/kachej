@@ -17,9 +17,9 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Run Unit Test
-      run: ./gradlew test
+      run: ./gradlew :kachej:test
     - name: Run Jacoco Report
-      run: ./gradlew coverageReport
+      run: ./gradlew :kachej:jacocoTestReport
     - uses: codecov/codecov-action@v1
       with:
         file: ./kachej/build/jacoco/coverage.xml
