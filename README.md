@@ -51,14 +51,13 @@ cache.read<User>("user.cache")
 ```
 allprojects {
     repositories {
-        ...
-        maven { url 'https://jitpack.io' }
+        jcenter()
     }
 }
 ```
 - Module `build.gradle` 
 ```
 dependencies {
-    implementation 'com.github.jeziellago:kachej:0.1.1'
+    implementation 'com.kachej:kachej:0.1.1'
 }
 ```

@@ -2,12 +2,8 @@ name: CI
 
 on: 
   push:
-    branches: 
-      - dev
+    branches:
       - master
-  pull_request:
-    branches: 
-      - dev
 
 jobs:
   build:
@@ -15,13 +11,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
-    - name: Run Unit Test
-      run: ./gradlew :kachej:test
-    - name: Run Jacoco Report
-      run: ./gradlew :kachej:jacocoTestReport
-    - uses: codecov/codecov-action@v1
-      with:
-        file: ./kachej/build/jacoco/coverage.xml
-    - name: Run Build
-      run: ./gradlew build
+      - uses: actions/checkout@v2
+      - name: Run Unit Test
+        run: ./gradlew :kachej:test
+      - name: Run Jacoco Report
+        run: ./gradlew :kachej:jacocoTestReport
+      - uses: codecov/codecov-action@v1
+        with:
+          file: ./kachej/build/jacoco/coverage.xml
+      - name: Deploy
+        run: ./gradlew build && ./gradlew -Puser=${{ secrets.BINTRAY_USER }} -Pkey=${{ secrets.BINTRAY_API_KEY }} bintrayUpload
