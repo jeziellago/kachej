@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
@@ -52,13 +53,12 @@ class KachejTest {
         mapOf("key" to Any())
     )
 
-
     @Test
     fun `writer should write serializable object with success`() = runBlocking {
-        val kachej = Kachej()
+        val kachej = getKachej()
         var success = false
 
-        kachej.write("myObject", serializableObject)
+        kachej.write(OBJECT_WRITE, serializableObject)
             .collect { success = true }
 
         assert(success)
@@ -66,11 +66,11 @@ class KachejTest {
 
     @Test
     fun `writer should rewrite serializable object with success`() = runBlocking {
-        val kachej = Kachej()
+        val kachej = getKachej()
         var success = false
-        kachej.write("myObject", serializableObject).single()
+        kachej.write(OBJECT_WRITE, serializableObject).single()
 
-        kachej.write("myObject", serializableObject)
+        kachej.write(OBJECT_WRITE, serializableObject)
             .collect { success = true }
 
         assert(success)
@@ -78,24 +78,54 @@ class KachejTest {
 
     @Test(expected = NotSerializableException::class)
     fun `writer should not write unserializable`() = runBlocking {
-        val kachej = Kachej()
+        val kachej = getKachej()
 
-        kachej.write("myObject", unserializableObject).single()
+        kachej.write(OBJECT_WRITE, unserializableObject).single()
     }
 
     @Test
     fun `reader should read object from file`() = runBlocking {
-        val kachej = Kachej()
+        val kachej = getKachej()
 
-        kachej.write("myObject", serializableObject).single()
+        kachej.write(OBJECT_READ, serializableObject).single()
 
-        assertEquals(serializableObject, kachej.read<MyObject>("myObject").single())
+        assertEquals(serializableObject, kachej.read<MyObject>(OBJECT_READ).single())
+    }
+
+    @Test
+    fun `clean file should clean object from cache`() = runBlocking {
+        var fileCleaned = false
+        with(File("/tmp/kachej", OBJECT_CLEAN_SINGLE)) {
+            parentFile.mkdirs()
+            writeText("text")
+            assertTrue(exists())
+        }
+
+        getKachej().clean(OBJECT_CLEAN_SINGLE).collect { fileCleaned = true }
+
+        assertTrue(fileCleaned)
+    }
+
+    @Test
+    fun `cleanAll should clean cache`() = runBlocking {
+        var fileCleaned = false
+        with(File("/tmp/kachej", OBJECT_CLEAN_ALL)) {
+            parentFile.mkdirs()
+            writeText("text")
+            assertTrue(exists())
+        }
+
+        getKachej().cleanAll().collect { fileCleaned = true }
+
+        assertTrue(fileCleaned)
     }
 
     @After
     fun tearDown() {
-        File("myObject").delete()
+        File("/tmp/kachej").deleteRecursively()
     }
+
+    private fun getKachej() = Kachej(parentDir = File("/tmp/kachej"))
 
     data class MyValue(val value: Any) : Serializable
 
@@ -110,3 +140,8 @@ class KachejTest {
         val h: Map<Any, Any>
     ) : Serializable
 }
+
+private const val OBJECT_READ = "read.cache"
+private const val OBJECT_WRITE = "write.cache"
+private const val OBJECT_CLEAN_SINGLE = "clean.cache"
+private const val OBJECT_CLEAN_ALL = "clean_all.cache"

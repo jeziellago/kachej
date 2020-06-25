@@ -17,10 +17,11 @@ val user = User("Jeziel", "Lago")
 ### Write objects
 ```kotlin
 // Create Kachej instance
-val cache = Kachej(parentDir = File("/tmp/users"))
-
-// or
-val cache = Kachej() // parentdir = '.'
+val cache = Kachej(
+    parentDir = File("/cache/users"), 
+    timeToLive = 60, 
+    liveUnit = TimeUnit.MINUTES
+)
 ```
 Using Kotlin Flow write it:
 ```kotlin
@@ -47,6 +48,22 @@ cache.read<User>("user.cache")
         // do something
     }
 ```
+### Clean objects
+```kotlin
+cache.clean("user.cache")
+    .catch { /* Error */ }
+    .collect { 
+        // do something
+    }
+```
+or
+```kotlin
+cache.cleanAll()
+    .catch { /* Error */ }
+    .collect { 
+        // do something
+    }
+```
 ## Add dependencies
 - Project `build.gradle` 
 ```
@@ -59,6 +76,6 @@ allprojects {
 - Module `build.gradle` 
 ```
 dependencies {
-    implementation 'com.kachej:kachej:0.1.1'
+    implementation 'com.kachej:kachej:0.1.2'
 }
 ```
