@@ -22,35 +22,60 @@ import java.io.File
 import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
 import java.io.Serializable
+import java.util.concurrent.TimeUnit
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class Kachej(
-    private val parentDir: File = File(".")
-) : ObjectReader, ObjectWriter {
+    private val parentDir: File = File("."),
+    private val timeToLive: Long = 3600,
+    private val liveUnit: TimeUnit = TimeUnit.SECONDS
+) : ObjectReader, ObjectWriter, ObjectCleaner {
 
     override fun <T : Serializable> write(
         filename: String,
         value: T
     ): Flow<Unit> = flow {
         emit(lockableTask {
-                val file = File(parentDir.absolutePath, filename)
-                if (file.exists()) file.delete()
-                ObjectOutputStream(file.outputStream()).run {
-                    writeObject(value)
-                    close()
-                }
+            check(createParentDirIfNotExists())
+            val file = File(parentDir.absolutePath, filename)
+            if (file.exists()) file.delete()
+            ObjectOutputStream(file.outputStream()).run {
+                writeObject(value)
+                close()
             }
-        )
+        })
     }
 
-    override fun <T : Serializable> read(filename: String): Flow<T> = flow {
-        emit(lockableTask {
+    override fun <T : Serializable> read(filename: String): Flow<T> =
+        flow {
+            emit(lockableTask {
                 val file = File(parentDir.absolutePath, filename)
                 ObjectInputStream(file.inputStream()).use { reader ->
                     @Suppress("UNCHECKED_CAST")
                     reader.readObject() as T
                 }
-            }
-        )
-    }
+            })
+        }
+
+    override fun clean(filename: String): Flow<Unit> =
+        flow {
+            emit(lockableTask {
+                val file = File(parentDir.absolutePath, filename)
+                if (file.exists()) file.delete()
+            })
+        }
+
+    override fun cleanAll(): Flow<Unit> =
+        flow {
+            emit(lockableTask {
+                parentDir.listFiles()
+                    ?.forEach { file -> check(file.delete()) }
+                    ?: Unit
+            })
+        }
+
+    private fun createParentDirIfNotExists(): Boolean =
+        if (!parentDir.exists()) {
+            parentDir.mkdirs()
+        } else true
 }
