@@ -1,5 +1,5 @@
 ![](logo_kachej.png)
-# Kachej [![codecov](https://codecov.io/gh/jeziellago/kachej/branch/master/graph/badge.svg)](https://codecov.io/gh/jeziellago/kachej) ![CI](https://github.com/jeziellago/kachej/workflows/CI/badge.svg?branch=master)  [ ![Download](https://api.bintray.com/packages/jeziellago/kachej/kachej/images/download.svg) ](https://bintray.com/jeziellago/kachej/kachej/_latestVersion)
+# Kachej ![CI](https://github.com/jeziellago/kachej/workflows/CI/badge.svg?branch=master)  [ ![Download](https://api.bintray.com/packages/jeziellago/kachej/kachej/images/download.svg) ](https://bintray.com/jeziellago/kachej/kachej/_latestVersion)
 
 Write objects as files using Kotlin Flow.
 ## Why?
