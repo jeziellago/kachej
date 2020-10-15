@@ -15,7 +15,11 @@
  */
 package com.kachej
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
-internal suspend fun <T> lockableTask(action: () -> T): T {
-    return LockableTask().execute(action)
-}
+
+internal suspend fun <T> lockableTask(action: () -> T): T =
+    withContext(Dispatchers.IO) {
+        LockableTask().execute(action)
+    }

@@ -15,10 +15,13 @@
  */
 package com.kachej
 
-import kotlinx.coroutines.flow.Flow
 import java.io.Serializable
 
 interface ObjectWriter {
 
-    fun <T : Serializable> write(filename: String, value: T): Flow<Unit>
+    suspend fun <T : Serializable> write(
+        filename: String,
+        value: T,
+        result: Result<Unit>.() -> Unit = {}
+    )
 }

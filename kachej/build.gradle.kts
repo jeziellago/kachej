@@ -50,7 +50,7 @@ publishing {
             from(components["java"])
             groupId = "com.kachej"
             artifactId = "kachej"
-            version = "0.1.2"
+            version = "0.1.3"
             artifact(sourcesJar)
         }
     }
@@ -71,8 +71,8 @@ bintray {
         publicDownloadNumbers = true
         setLicenses("Apache-2.0")
         desc = "An alternative to cache objects as files easily using Kotlin Flow."
-        version.name = "0.1.2"
-        version.vcsTag = "0.1.2"
+        version.name = "0.1.3"
+        version.vcsTag = "0.1.3"
         publish = true
         override = true
     }

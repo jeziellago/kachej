@@ -1,9 +1,9 @@
 ![](logo_kachej.png)
-# Kachej ![CI](https://github.com/jeziellago/kachej/workflows/CI/badge.svg?branch=master)  [ ![Download](https://api.bintray.com/packages/jeziellago/kachej/kachej/images/download.svg) ](https://bintray.com/jeziellago/kachej/kachej/_latestVersion)
+# Kachej ![CI](https://github.com/jeziellago/kachej/workflows/CI/badge.svg?branch=master)  [ ![Download](https://api.bintray.com/packages/jeziellago/kachej/kachej/images/download.svg) ](https://bintray.com/jeziellago/kachej/kachej/_latestVersion) [![Codacy Badge](https://app.codacy.com/project/badge/Grade/c6d894f3ef6642adb1dec80f88ff2aad)](https://www.codacy.com/gh/jeziellago/kachej/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=jeziellago/kachej&amp;utm_campaign=Badge_Grade)
 
-Write objects as files using Kotlin Flow.
+Write objects as files (to cache purpose) backed by Kotlin coroutines.
 ## Why?
-- This tool is an alternative to cache objects without having to convert to JSON, XML or other.
+- This tool is an alternative to build cache without intermediate format (as JSON, XML or other).
 - Why not? 😎
 
 ## How it works?
@@ -15,54 +15,77 @@ data class User(val name: String, val lastName: String) : Serializable
 val user = User("Jeziel", "Lago")
 ```
 ### Write objects
+Create Kachej instance:
 ```kotlin
-// Create Kachej instance
 val cache = Kachej(
     parentDir = File("/cache/users"), 
     timeToLive = 60, 
     liveUnit = TimeUnit.MINUTES
 )
 ```
-Using Kotlin Flow write it:
+#### Write single object:
 ```kotlin
-cache.write("user.cache", user) // create file "user.cache"
-    .catch { /* Error */ }
-    .collect { /* Success */ }
-
+// create file "user_123"
+cache.write("user_123", user) {
+    onSuccess { /* success */ }
+    onFailure { error -> /* error */ }
+}
 ```
-### Restore objects
+#### Write Collection:
 ```kotlin
-cache.read<User>("user.cache")
-    .catch { /* Error */ }
-    .collect { user ->
-        // do something
-    }
+// create file "user_collection"
+val userCollection = CacheableList<User>(
+    listOf(user1, user2, ...)
+)
+cache.write("user_collection", userCollection) {
+    onSuccess { /* success */ }
+    onFailure { error -> /* error */ }
+}
 ```
-Use Flow operators to transformations:
+#### Write Map:
 ```kotlin
-cache.read<User>("user.cache")
-    .map { /* ... */ }
-    .flatMapConcat { /* .... */ }
-    .catch { /* Error */ }
-    .collect { 
-        // do something
-    }
+// create file "user_map"
+val userCollection = CacheableMap(
+    mapOf(
+        "bob" to user1,
+        "ana" to user2,
+        ...
+    )
+)
+cache.write("user_map", userCollection) {
+    onSuccess { /* success */ }
+    onFailure { error -> /* error */ }
+}
 ```
-### Clean objects
+### Read/restore objects
+#### Single object
 ```kotlin
-cache.clean("user.cache")
-    .catch { /* Error */ }
-    .collect { 
-        // do something
-    }
+cache.read<User>("user_123") {
+    onSuccess { user -> /* success */ }
+    onFailure { error -> /* error */ }
+}
+```
+#### Collection
+```kotlin
+cache.read<CacheableList<User>>("user_collection") {
+    onSuccess { list -> /* success */ }
+    onFailure { error -> /* error */ }
+}
+```
+#### Map
+```kotlin
+cache.read<CacheableMap>("user_map") {
+    onSuccess { map -> /* success */ }
+    onFailure { error -> /* error */ }
+}
+```
+### Clean
+```kotlin
+cache.clean("user_collection")
 ```
 or
 ```kotlin
 cache.cleanAll()
-    .catch { /* Error */ }
-    .collect { 
-        // do something
-    }
 ```
 ## Add dependencies
 - Project `build.gradle` 

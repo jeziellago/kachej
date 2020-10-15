@@ -15,117 +15,139 @@
  */
 package com.kachej
 
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
+import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
-import java.io.File
 import java.io.NotSerializableException
 import java.io.Serializable
 
 @RunWith(JUnit4::class)
 class KachejTest {
 
-    private val serializableObject = MyObject(
-        1,
-        1F,
-        1.0,
-        true,
-        "value",
-        listOf(MyValue("v1"), MyValue(2), MyValue(MyValue(0))),
-        setOf(MyValue("set")),
-        mapOf("key" to "value")
-    )
+    lateinit var kachej: Kachej
 
-    private val unserializableObject = MyObject(
-        1,
-        1F,
-        1.0,
-        true,
-        "value",
-        listOf(MyValue(Any())),
-        setOf(MyValue("set")),
-        mapOf("key" to Any())
-    )
+    @get:Rule
+    val tmpFolder = TemporaryFolder()
+
+    @Before
+    fun setup() {
+        kachej = Kachej(parentDir = tmpFolder.newFolder("kachej"))
+    }
 
     @Test
     fun `writer should write serializable object with success`() = runBlocking {
-        val kachej = getKachej()
         var success = false
 
-        kachej.write(OBJECT_WRITE, serializableObject)
-            .collect { success = true }
+        kachej.write(OBJECT_WRITE, serializableObject) {
+            onSuccess { success = true }
+        }
 
         assert(success)
+    }
+
+    @Test
+    fun `writer should write map object with success`() = runBlocking {
+        val expectedValue = CacheableMap(mapOf("name" to "username", "age" to 50))
+
+        var result = false
+
+        kachej.write(OBJECT_WRITE, expectedValue) {
+            onSuccess { result = true }
+        }
+
+        assert(result)
     }
 
     @Test
     fun `writer should rewrite serializable object with success`() = runBlocking {
-        val kachej = getKachej()
         var success = false
-        kachej.write(OBJECT_WRITE, serializableObject).single()
-
         kachej.write(OBJECT_WRITE, serializableObject)
-            .collect { success = true }
+
+        kachej.write(OBJECT_WRITE, serializableObject) {
+            onSuccess { success = true }
+        }
 
         assert(success)
     }
 
-    @Test(expected = NotSerializableException::class)
+    @Test
     fun `writer should not write unserializable`() = runBlocking {
-        val kachej = getKachej()
+        var exception: Throwable? = null
+        kachej.write(OBJECT_WRITE, unserializableObject) {
+            onFailure { exception = it }
+        }
 
-        kachej.write(OBJECT_WRITE, unserializableObject).single()
+        assert(exception is NotSerializableException)
     }
 
     @Test
     fun `reader should read object from file`() = runBlocking {
-        val kachej = getKachej()
+        kachej.write(OBJECT_READ, serializableObject)
 
-        kachej.write(OBJECT_READ, serializableObject).single()
+        var result: Any? = null
 
-        assertEquals(serializableObject, kachej.read<MyObject>(OBJECT_READ).single())
+        kachej.read<MyObject>(OBJECT_READ) {
+            onSuccess { result = it }
+            onFailure { result = it }
+        }
+
+        assertEquals(serializableObject, result)
+    }
+
+    @Test
+    fun `reader should read cacheable map from file`() = runBlocking {
+        val expectedObject = CacheableMap(mapOf("key" to "value"))
+
+        kachej.write(OBJECT_READ, expectedObject)
+
+        var result: CacheableMap? = null
+
+        kachej.read<CacheableMap>(OBJECT_READ) {
+            onSuccess { result = it }
+        }
+
+        assertEquals(expectedObject, result)
+    }
+
+    @Test
+    fun `reader should read cacheable list from file`() = runBlocking {
+        val expectedObject = CacheableList(listOf("1", 2, 3L))
+
+        kachej.write(OBJECT_READ, expectedObject)
+
+        var result: CacheableList<*>? = null
+
+        kachej.read<CacheableList<*>>(OBJECT_READ) {
+            onSuccess { result = it }
+        }
+
+        assertEquals(expectedObject, result)
     }
 
     @Test
     fun `clean file should clean object from cache`() = runBlocking {
-        var fileCleaned = false
-        with(File("/tmp/kachej", OBJECT_CLEAN_SINGLE)) {
-            parentFile.mkdirs()
-            writeText("text")
-            assertTrue(exists())
-        }
+        kachej.write(OBJECT_CLEAN_SINGLE, CacheableMap(emptyMap()))
 
-        getKachej().clean(OBJECT_CLEAN_SINGLE).collect { fileCleaned = true }
-
-        assertTrue(fileCleaned)
+        kachej.clean(OBJECT_CLEAN_SINGLE)
     }
 
     @Test
     fun `cleanAll should clean cache`() = runBlocking {
-        var fileCleaned = false
-        with(File("/tmp/kachej", OBJECT_CLEAN_ALL)) {
-            parentFile.mkdirs()
-            writeText("text")
-            assertTrue(exists())
-        }
+        kachej.write(OBJECT_CLEAN_ALL, CacheableMap(emptyMap()))
 
-        getKachej().cleanAll().collect { fileCleaned = true }
-
-        assertTrue(fileCleaned)
+        kachej.cleanAll()
     }
 
     @After
     fun tearDown() {
-        File("/tmp/kachej").deleteRecursively()
+        tmpFolder.delete()
     }
-
-    private fun getKachej() = Kachej(parentDir = File("/tmp/kachej"))
 
     data class MyValue(val value: Any) : Serializable
 

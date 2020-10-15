@@ -15,10 +15,12 @@
  */
 package com.kachej
 
-import kotlinx.coroutines.flow.Flow
 import java.io.Serializable
 
 interface ObjectReader {
 
-    fun <T : Serializable> read(filename: String): Flow<T>
+    suspend fun <T : Serializable> read(
+        filename: String,
+        result: Result<T>.() -> Unit
+    )
 }

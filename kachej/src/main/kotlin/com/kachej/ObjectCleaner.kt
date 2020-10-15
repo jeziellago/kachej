@@ -15,10 +15,8 @@
  */
 package com.kachej
 
-import kotlinx.coroutines.flow.Flow
-
 interface ObjectCleaner {
 
-    fun clean(filename: String): Flow<Unit>
-    fun cleanAll(): Flow<Unit>
+    suspend fun clean(filename: String)
+    suspend fun cleanAll()
 }
