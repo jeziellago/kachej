@@ -99,6 +99,6 @@ allprojects {
 - Module `build.gradle` 
 ```
 dependencies {
-    implementation 'com.kachej:kachej:0.1.2'
+    implementation 'com.kachej:kachej:0.1.3'
 }
 ```
