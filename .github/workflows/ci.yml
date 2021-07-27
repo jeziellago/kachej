@@ -14,7 +14,3 @@ jobs:
       - uses: actions/checkout@v2
       - name: Run Unit Test
         run: ./gradlew :kachej:test
-      - name: Run Jacoco Report
-        run: ./gradlew :kachej:jacocoTestReport
-      - name: Deploy
-        run: ./gradlew build && ./gradlew -Puser=${{ secrets.BINTRAY_USER }} -Pkey=${{ secrets.BINTRAY_API_KEY }} bintrayUpload

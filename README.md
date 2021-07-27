@@ -1,104 +1,130 @@
 ![](logo_kachej.png)
-# Kachej ![CI](https://github.com/jeziellago/kachej/workflows/CI/badge.svg?branch=master)  [ ![Download](https://api.bintray.com/packages/jeziellago/kachej/kachej/images/download.svg) ](https://bintray.com/jeziellago/kachej/kachej/_latestVersion) [![Codacy Badge](https://app.codacy.com/project/badge/Grade/c6d894f3ef6642adb1dec80f88ff2aad)](https://www.codacy.com/gh/jeziellago/kachej/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=jeziellago/kachej&amp;utm_campaign=Badge_Grade)
+
+# Kachej ![CI](https://github.com/jeziellago/kachej/workflows/CI/badge.svg?branch=master)
 
 Write objects as files (to cache purpose) backed by Kotlin coroutines.
+
 ## Why?
+
 - This tool is an alternative to build cache without intermediate format (as JSON, XML or other).
 - Why not? 😎
 
 ## How it works?
+
 Transform objects in files to cache them, to restore after, or make anything.
+
 ```kotlin
 // Create Serializable object
 data class User(val name: String, val lastName: String) : Serializable
 
 val user = User("Jeziel", "Lago")
 ```
-### Write objects
-Create Kachej instance:
+
+### Put objects
+
+Create Cache instance:
+
 ```kotlin
-val cache = Kachej(
-    parentDir = File("/cache/users"), 
-    timeToLive = 60, 
+val cache = Cache.of(
+    parentDir = File("/cache/users"),
+    timeToLive = 60,
     liveUnit = TimeUnit.MINUTES
 )
 ```
-#### Write single object:
+
+#### Put single object:
+
 ```kotlin
 // create file "user_123"
-cache.write("user_123", user) {
-    onSuccess { /* success */ }
-    onFailure { error -> /* error */ }
-}
+cache.put("user_123", user)
+    .catch { error -> /* error */ }
+    .collect { /* success */ }
 ```
-#### Write Collection:
+
+#### Put Collection:
+
 ```kotlin
 // create file "user_collection"
-val userCollection = CacheableList<User>(
-    listOf(user1, user2, ...)
-)
-cache.write("user_collection", userCollection) {
-    onSuccess { /* success */ }
-    onFailure { error -> /* error */ }
-}
+val userCollection = cacheOf(user1, user2, ...)
+
+cache.put("user_collection", userCollection)
+    .catch { error -> /* error */ }
+    .collect { /* success */ }
 ```
-#### Write Map:
+
+#### Put Map:
+
 ```kotlin
 // create file "user_map"
-val userCollection = CacheableMap(
-    mapOf(
-        "bob" to user1,
-        "ana" to user2,
-        ...
-    )
+val userMap = cacheOf(
+    "bob" to user1,
+    "ana" to user2
 )
-cache.write("user_map", userCollection) {
-    onSuccess { /* success */ }
-    onFailure { error -> /* error */ }
-}
+
+cache.put("user_map", userMap)
+    .catch { error -> /* error */ }
+    .collect { /* success */ }
 ```
-### Read/restore objects
+
+### Get objects
+
 #### Single object
+
 ```kotlin
-cache.read<User>("user_123") {
-    onSuccess { user -> /* success */ }
-    onFailure { error -> /* error */ }
-}
+cache.get<User>("user_123")
+    .catch { error -> /* error */ }
+    .collect { user -> /* success */ }
 ```
+
 #### Collection
+
 ```kotlin
-cache.read<CacheableList<User>>("user_collection") {
-    onSuccess { list -> /* success */ }
-    onFailure { error -> /* error */ }
-}
+cache.get<CacheableList<User>>("user_collection")
+    .catch { error -> /* error */ }
+    .collect { list -> /* success */ }
 ```
+
 #### Map
+
 ```kotlin
-cache.read<CacheableMap>("user_map") {
-    onSuccess { map -> /* success */ }
-    onFailure { error -> /* error */ }
-}
+cache.get<CacheableMap>("user_map")
+    .catch { error -> /* error */ }
+    .collect { map -> /* success */ }
 ```
-### Clean
+
+### Clear
+
 ```kotlin
-cache.clean("user_collection")
+cache.clear("user_collection")
+    .catch { error -> /* error */ }
+    .collect { /* success */ }
 ```
+
 or
+
 ```kotlin
-cache.cleanAll()
+cache.clearAll()
+    .catch { error -> /* error */ }
+    .collect { /* success */ }
 ```
-## Add dependencies
-- Project `build.gradle` 
+
+## Dependency
+
+- Project `build.gradle`
+
 ```
 allprojects {
     repositories {
-        jcenter()
+        ...
+        maven { url 'https://jitpack.io' }
     }
 }
 ```
-- Module `build.gradle` 
+
+- Module `build.gradle`
+
 ```
 dependencies {
-    implementation 'com.kachej:kachej:0.1.3'
+    implementation 'com.github.jeziellago:kachej:VERSION`
 }
 ```

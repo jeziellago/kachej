@@ -1,7 +1,6 @@
 plugins {
     id("kotlin")
     id("maven-publish")
-    id("com.jfrog.bintray") version "1.8.5"
     jacoco
 }
 
@@ -50,31 +49,9 @@ publishing {
             from(components["java"])
             groupId = "com.kachej"
             artifactId = "kachej"
-            version = "0.1.3"
+            version = "0.2.0"
             artifact(sourcesJar)
         }
-    }
-}
-
-bintray {
-    val pUser = if (hasProperty("user")) property("user") as String else ""
-    val pKey = if (hasProperty("key")) property("key") as String else ""
-    user = pUser
-    key = pKey
-    setPublications("release")
-    with(pkg) {
-        name = "kachej"
-        repo = "kachej"
-        websiteUrl = "https://github.com/jeziellago/kachej"
-        issueTrackerUrl = "https://github.com/jeziellago/kachej/issues"
-        vcsUrl = "https://github.com/jeziellago/kachej.git"
-        publicDownloadNumbers = true
-        setLicenses("Apache-2.0")
-        desc = "An alternative to cache objects as files easily using Kotlin Flow."
-        version.name = "0.1.3"
-        version.vcsTag = "0.1.3"
-        publish = true
-        override = true
     }
 }
 
@@ -82,5 +59,6 @@ dependencies {
     implementation(Libs.kotlin)
     implementation(Libs.kotlin)
     implementation(Libs.coroutines)
+    testImplementation(Libs.turbine)
     testImplementation(Libs.junit4)
 }

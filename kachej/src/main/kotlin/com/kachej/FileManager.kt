@@ -8,7 +8,7 @@ import java.util.Date
 import kotlin.time.ExperimentalTime
 import kotlin.time.toDuration
 
-object FileManager {
+internal object FileManager {
 
     @JvmStatic
     fun getFileFrom(cache: File, filename: String): File {
@@ -43,7 +43,7 @@ object FileManager {
             val currentTime = Date().time
             val cacheLifetime = (currentTime - creationTime)
 
-            val shouldClearDir = (cacheLifetime > timeToLive.toDuration(timeUnit).inMilliseconds)
+            val shouldClearDir = (cacheLifetime > timeToLive.toDuration(timeUnit).inWholeMilliseconds)
             if (shouldClearDir) cleanDir(dir)
             return shouldClearDir
         }

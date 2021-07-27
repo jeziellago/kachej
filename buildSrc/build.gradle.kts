@@ -9,5 +9,5 @@ sourceSets {
 }
 
 repositories {
-    jcenter()
+    mavenCentral()
 }

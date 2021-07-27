@@ -1,23 +1,39 @@
 package com.kachej
 
-val serializableObject = KachejTest.MyObject(
+import java.io.Serializable
+
+
+data class MyValue(val value: Any) : Serializable
+
+data class MyObject(
+    val a: Int,
+    val b: Float,
+    val c: Double,
+    val d: Boolean,
+    val e: String,
+    val f: List<MyValue>,
+    val g: Set<MyValue>,
+    val h: Map<Any, Any>
+) : Serializable
+
+val serializableObject = MyObject(
     1,
     1F,
     1.0,
     true,
     "value",
-    listOf(KachejTest.MyValue("v1"), KachejTest.MyValue(2), KachejTest.MyValue(KachejTest.MyValue(0))),
-    setOf(KachejTest.MyValue("set")),
+    listOf(MyValue("v1"), MyValue(2), MyValue(MyValue(0))),
+    setOf(MyValue("set")),
     mapOf("key" to "value")
 )
 
-val unserializableObject = KachejTest.MyObject(
+val unserializableObject = MyObject(
     1,
     1F,
     1.0,
     true,
     "value",
-    listOf(KachejTest.MyValue(Any())),
-    setOf(KachejTest.MyValue("set")),
+    listOf(MyValue(Any())),
+    setOf(MyValue("set")),
     mapOf("key" to Any())
 )
